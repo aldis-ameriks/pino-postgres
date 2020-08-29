@@ -26,12 +26,11 @@ class PinoTransform extends Transform {
     }
 
     this.sql`
-        insert into ${this.sql(this.schema)}.${this.sql(this.table)}
-            (${this.sql(this.column)})
-            values (${this.sql.json(log)})
+        INSERT INTO ${this.sql(this.schema)}.${this.sql(this.table)} (${this.sql(this.column)}) VALUES (${this.sql.json(log)})
+        ON CONFLICT DO NOTHING;
     `
       .then(() => callback(null, `${chunk}\n`))
-      .catch(err => callback(err, null))
+      .catch(() => callback(null, `${chunk}\n`))
   }
 }
 

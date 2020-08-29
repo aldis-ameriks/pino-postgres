@@ -22,7 +22,6 @@ class PinoTransform extends Transform {
     try {
       log = JSON.parse(content)
     } catch (err) {
-      console.error('error in pino-postgres transform', err)
       return callback(null, `${chunk}\n`)
     }
 
@@ -31,7 +30,10 @@ class PinoTransform extends Transform {
         ON CONFLICT DO NOTHING;
     `
       .then(() => callback(null, `${chunk}\n`))
-      .catch(() => callback(null, `${chunk}\n`))
+      .catch((err) => {
+        console.error('error in pino-postgres transform', err)
+        callback(null, `${chunk}\n`)
+      })
   }
 }
 

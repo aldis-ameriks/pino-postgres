@@ -6,6 +6,7 @@ const { Command } = require('commander')
 const postgres = require('postgres')
 const split = require('split2')
 const { pipeline, Transform } = require('stream')
+const packageJson = require('./package.json')
 
 class PinoTransform extends Transform {
   constructor (schema, table, column, sql) {
@@ -42,7 +43,7 @@ if (require.main === module) {
     const program = new Command()
     program
       .name('pino-postgres')
-      .version('0.0.1')
+      .version(packageJson.version)
       .option('--connection <connection>', 'postgres connection string')
       .option('--table <name>', 'table name', 'logs')
       .option('--schema <name>', 'schema name', 'public')

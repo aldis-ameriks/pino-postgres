@@ -21,7 +21,8 @@ class PinoTransform extends Transform {
     let log = {}
     try {
       log = JSON.parse(content)
-    } catch {
+    } catch (err) {
+      console.error('error in pino-postgres transform', err)
       return callback(null, `${chunk}\n`)
     }
 

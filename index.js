@@ -46,7 +46,7 @@ if (require.main === module) {
       .option('--schema <name>', 'schema name', 'public')
       .option('--column <name>', 'column name', 'content')
       .option('--ssl', 'use ssl', false)
-      .option('--debug', 'debug postgres queries', false)
+      .option('--debug', 'debug postgres client', false)
 
     const opts = program.parse(process.argv).opts()
     const postgresOpts = {}
@@ -60,14 +60,22 @@ if (require.main === module) {
         console.log('DEBUG - params: ', params)
       }
     }
-    const sql = postgres(opts.connection, postgresOpts)
-    const transport = new PinoTransform(opts.schema, opts.table, opts.column, sql)
-    transport.on('end', sql.end)
 
-    pipeline(process.stdin, split(), transport, process.stdout, err => {
-      if (err) {
-        console.error(err)
-      }
-    })
+    if (opts.debug) {
+      console.log('DEBUG - starting pino-postgres')
+    }
+
+    try {
+      const sql = postgres(opts.connection, postgresOpts)
+      const transport = new PinoTransform(opts.schema, opts.table, opts.column, sql)
+      transport.on('end', sql.end)
+      pipeline(process.stdin, split(), transport, process.stdout, err => {
+        if (err) {
+          console.error('error in pino-postgres pipeline', err)
+        }
+      })
+    } catch (err) {
+      console.error('error in pino-postgres', err)
+    }
   })()
 }

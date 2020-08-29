@@ -29,7 +29,7 @@ class PinoTransform extends Transform {
         INSERT INTO ${this.sql(schema)}.${this.sql(table)} (${this.sql(column)}) VALUES (${this.sql.json(log)})
         ON CONFLICT DO NOTHING;
     `
-      .then(() => callback(null, `${chunk}\n`))
+      .then(() => callback(null, passThrough ? `${chunk}\n` : null))
       .catch((err) => {
         console.error('error in pino-postgres transform', err)
         callback(null, passThrough ? `${chunk}\n` : null)

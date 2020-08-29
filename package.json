@@ -1,0 +1,41 @@
+{
+  "name": "pino-postgres",
+  "version": "0.0.1",
+  "description": "Pino transport for Postgres",
+  "main": "index.js",
+  "bin": {
+    "pino-postgres": "index.js"
+  },
+  "scripts": {
+    "lint": "standard",
+    "lint:fix": "standard --fix"
+  },
+  "author": "Aldis Ameriks <aldis.ameriks@gmail.com>",
+  "keywords": [
+    "pino",
+    "logging",
+    "log",
+    "nodejs",
+    "node",
+    "database",
+    "postgres",
+    "transport"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aldis-ameriks/pino-postgres.git"
+  },
+  "homepage": "https://github.com/aldis-ameriks/pino-postgres#readme",
+  "bugs": {
+    "url": "https://github.com/aldis-ameriks/pino-postgres/issues"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^6.1.0",
+    "postgres": "^2.0.0-beta.0",
+    "split2": "^3.2.2"
+  },
+  "devDependencies": {
+    "standard": "^14.3.4"
+  }
+}

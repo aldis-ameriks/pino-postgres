@@ -9,31 +9,30 @@ const { pipeline, Transform } = require('stream')
 const packageJson = require('./package.json')
 
 class PinoTransform extends Transform {
-  constructor (schema, table, column, sql) {
+  constructor (opts, sql) {
     super()
-    this.table = table
-    this.schema = schema
-    this.column = column
+    this.opts = opts
     this.sql = sql
   }
 
   _transform (chunk, encoding, callback) {
+    const { schema, table, column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
     let log = {}
     try {
       log = JSON.parse(content)
     } catch (err) {
-      return callback(null, `${chunk}\n`)
+      return callback(null, passThrough ? `${chunk}\n` : null)
     }
 
     this.sql`
-        INSERT INTO ${this.sql(this.schema)}.${this.sql(this.table)} (${this.sql(this.column)}) VALUES (${this.sql.json(log)})
+        INSERT INTO ${this.sql(schema)}.${this.sql(table)} (${this.sql(column)}) VALUES (${this.sql.json(log)})
         ON CONFLICT DO NOTHING;
     `
       .then(() => callback(null, `${chunk}\n`))
       .catch((err) => {
         console.error('error in pino-postgres transform', err)
-        callback(null, `${chunk}\n`)
+        callback(null, passThrough ? `${chunk}\n` : null)
       })
   }
 }
@@ -50,6 +49,7 @@ if (require.main === module) {
       .option('--column <name>', 'column name', 'content')
       .option('--ssl', 'use ssl', false)
       .option('--debug', 'debug postgres client', false)
+      .option('--pass-through', 'pass logs through', false)
 
     const opts = program.parse(process.argv).opts()
     const postgresOpts = {}
@@ -70,7 +70,7 @@ if (require.main === module) {
 
     try {
       const sql = postgres(opts.connection, postgresOpts)
-      const transport = new PinoTransform(opts.schema, opts.table, opts.column, sql)
+      const transport = new PinoTransform(opts, sql)
       transport.on('end', sql.end)
       pipeline(process.stdin, split(), transport, process.stdout, err => {
         if (err) {

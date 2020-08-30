@@ -12,16 +12,32 @@ let buffer = []
 let interval
 
 class PinoTransform extends Transform {
-  constructor (opts) {
+  constructor (opts, sql) {
     super()
     this.opts = opts
+    this.sql = sql
   }
 
   _transform (chunk, encoding, callback) {
     const { column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
     buffer.push({ [column]: content })
+    if (buffer.length > 10000) {
+      flushBuffer(this.sql, this.opts)
+    }
     callback(null, passThrough ? `${chunk}\n` : null)
+  }
+}
+
+function flushBuffer (sql, opts) {
+  if (buffer.length) {
+    sql`
+            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column)}
+            ON CONFLICT DO NOTHING;
+            `.catch((err) => {
+        console.error('error in pino-postgres sql', err)
+      })
+    buffer = []
   }
 }
 
@@ -70,15 +86,7 @@ if (require.main === module) {
         if (opts.debug) {
           console.log(`DEBUG - buffer size: ${buffer.length}`)
         }
-        if (buffer.length) {
-          sql`
-            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column)}
-            ON CONFLICT DO NOTHING;
-            `.catch((err) => {
-              console.error('error in pino-postgres sql', err)
-            })
-          buffer = []
-        }
+        flushBuffer(sql, opts)
       }, 5000)
       interval.unref()
 

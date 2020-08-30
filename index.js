@@ -12,23 +12,15 @@ let buffer = []
 let interval
 
 class PinoTransform extends Transform {
-  constructor (opts, sql) {
+  constructor (opts) {
     super()
     this.opts = opts
-    this.sql = sql
   }
 
   _transform (chunk, encoding, callback) {
     const { column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
-    let log = {}
-    try {
-      log = JSON.parse(content)
-    } catch (err) {
-      return callback(null, passThrough ? `${chunk}\n` : null)
-    }
-
-    buffer.push({ [column]: log })
+    buffer.push({ [column]: content })
     callback(null, passThrough ? `${chunk}\n` : null)
   }
 }
@@ -80,7 +72,7 @@ if (require.main === module) {
         }
         if (buffer.length) {
           sql`
-            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} (${sql(opts.column)}) VALUES (${sql(buffer)})
+            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column)}
             ON CONFLICT DO NOTHING;
             `.catch((err) => {
               console.error('error in pino-postgres sql', err)

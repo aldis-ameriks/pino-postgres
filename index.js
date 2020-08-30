@@ -52,7 +52,9 @@ if (require.main === module) {
       .option('--pass-through', 'pass logs through', false)
 
     const opts = program.parse(process.argv).opts()
-    const postgresOpts = {}
+    const postgresOpts = {
+      max: 1
+    }
     if (opts.ssl) {
       postgresOpts.ssl = { rejectUnauthorized: false }
     }

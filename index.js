@@ -22,7 +22,7 @@ class PinoTransform extends Transform {
     const { column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
     buffer.push({ [column]: content })
-    if (buffer.length > 10000) {
+    if (buffer.length > 1000) {
       flushBuffer(this.sql, this.opts)
     }
     callback(null, passThrough ? `${chunk}\n` : null)

@@ -79,8 +79,8 @@ if (require.main === module) {
           console.log(`DEBUG - buffer size: ${buffer.length}`)
         }
         if (buffer.length) {
-          this.sql`
-            INSERT INTO ${this.sql(opts.schema)}.${this.sql(opts.table)} (${this.sql(opts.column)}) VALUES (${this.sql(buffer)})
+          sql`
+            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} (${sql(opts.column)}) VALUES (${sql(buffer)})
             ON CONFLICT DO NOTHING;
             `.catch((err) => {
               console.error('error in pino-postgres sql', err)

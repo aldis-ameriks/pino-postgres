@@ -8,6 +8,9 @@ const split = require('split2')
 const { pipeline, Transform } = require('stream')
 const packageJson = require('./package.json')
 
+let buffer = []
+let interval
+
 class PinoTransform extends Transform {
   constructor (opts, sql) {
     super()
@@ -16,7 +19,7 @@ class PinoTransform extends Transform {
   }
 
   _transform (chunk, encoding, callback) {
-    const { schema, table, column, passThrough } = this.opts
+    const { column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
     let log = {}
     try {
@@ -25,15 +28,8 @@ class PinoTransform extends Transform {
       return callback(null, passThrough ? `${chunk}\n` : null)
     }
 
-    this.sql`
-        INSERT INTO ${this.sql(schema)}.${this.sql(table)} (${this.sql(column)}) VALUES (${this.sql.json(log)})
-        ON CONFLICT DO NOTHING;
-    `
-      .then(() => callback(null, passThrough ? `${chunk}\n` : null))
-      .catch((err) => {
-        console.error('error in pino-postgres transform', err)
-        callback(null, passThrough ? `${chunk}\n` : null)
-      })
+    buffer.push({ [column]: log })
+    callback(null, passThrough ? `${chunk}\n` : null)
   }
 }
 
@@ -73,7 +69,27 @@ if (require.main === module) {
     try {
       const sql = postgres(opts.connection, postgresOpts)
       const transport = new PinoTransform(opts, sql)
-      transport.on('end', sql.end)
+      transport.on('end', () => {
+        sql.end()
+        clearInterval(interval)
+      })
+
+      interval = setInterval(() => {
+        if (opts.debug) {
+          console.log(`DEBUG - buffer size: ${buffer.length}`)
+        }
+        if (buffer.length) {
+          this.sql`
+            INSERT INTO ${this.sql(opts.schema)}.${this.sql(opts.table)} (${this.sql(opts.column)}) VALUES (${this.sql(buffer)})
+            ON CONFLICT DO NOTHING;
+            `.catch((err) => {
+              console.error('error in pino-postgres sql', err)
+            })
+          buffer = []
+        }
+      }, 5000)
+      interval.unref()
+
       pipeline(process.stdin, split(), transport, process.stdout, err => {
         if (err) {
           console.error('error in pino-postgres pipeline', err)

@@ -6,6 +6,7 @@ const { Command } = require('commander')
 const postgres = require('postgres')
 const split = require('split2')
 const { pipeline, Transform } = require('stream')
+const { types } = require('util')
 const packageJson = require('./package.json')
 
 let buffer = []
@@ -49,7 +50,7 @@ function parseNumber (value) {
 function shutdown (sql, opts) {
   clearInterval(interval)
   const result = flushBuffer(sql, opts)
-  if (result instanceof Promise && 'then' in result) {
+  if (types.isPromise(result)) {
     result.then(() => {
       sql.end()
       process.exit(0)

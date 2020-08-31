@@ -45,20 +45,17 @@ function parseNumber (value) {
   return Number.parseInt(value, 10)
 }
 
-function exit (sql) {
-  sql.end()
-  clearInterval(interval)
-  process.exit(0)
-}
-
 function shutdown (sql, opts) {
+  clearInterval(interval)
   const result = flushBuffer(sql, opts)
   if (result instanceof Promise && 'then' in result) {
     result.then(() => {
-      exit(sql)
+      sql.end()
+      process.exit(0)
     })
   } else {
-    exit(sql)
+    sql.end()
+    process.exit(0)
   }
 }
 

@@ -19,6 +19,8 @@ Options:
   --table <name>             table name (default: "logs")
   --schema <name>            schema name (default: "public")
   --column <name>            column name (default: "content")
+  --flush-interval <number>  interval at which logs are flushed in ms (default: 5000)
+  --buffer-size <number>     max number of log entries in buffer (default: 1000)
   --ssl                      use ssl (default: false)
   --debug                    debug postgres client (default: false)
   --pass-through             pass logs through (default: false)

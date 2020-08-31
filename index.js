@@ -22,7 +22,7 @@ class PinoTransform extends Transform {
     const { column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
     buffer.push({ [column]: content })
-    if (buffer.length > 1000) {
+    if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }
     callback(null, passThrough ? `${chunk}\n` : null)
@@ -41,16 +41,22 @@ function flushBuffer (sql, opts) {
   }
 }
 
+function parseNumber (value) {
+  return Number.parseInt(value, 10)
+}
+
 if (require.main === module) {
   (async () => {
     const program = new Command()
     program
       .name('pino-postgres')
       .version(packageJson.version)
-      .option('--connection <connection>', 'postgres connection string')
+      .requiredOption('--connection <connection>', 'postgres connection string')
       .option('--table <name>', 'table name', 'logs')
       .option('--schema <name>', 'schema name', 'public')
       .option('--column <name>', 'column name', 'content')
+      .option('--flush-interval <number>', 'interval at which logs are flushed in ms', parseNumber, 5000)
+      .option('--buffer-size <number>', 'max number of log entries in buffer', parseNumber, 1000)
       .option('--ssl', 'use ssl', false)
       .option('--debug', 'debug postgres client', false)
       .option('--pass-through', 'pass logs through', false)
@@ -87,7 +93,7 @@ if (require.main === module) {
           console.log(`DEBUG - buffer size: ${buffer.length}`)
         }
         flushBuffer(sql, opts)
-      }, 5000)
+      }, opts.flushInterval)
       interval.unref()
 
       pipeline(process.stdin, split(), transport, process.stdout, err => {

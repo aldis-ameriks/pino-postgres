@@ -31,18 +31,35 @@ class PinoTransform extends Transform {
 
 function flushBuffer (sql, opts) {
   if (buffer.length) {
-    sql`
+    buffer = []
+    return sql`
             INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column)}
             ON CONFLICT DO NOTHING;
             `.catch((err) => {
         console.error('error in pino-postgres sql', err)
       })
-    buffer = []
   }
 }
 
 function parseNumber (value) {
   return Number.parseInt(value, 10)
+}
+
+function exit (sql) {
+  sql.end()
+  clearInterval(interval)
+  process.exit(0)
+}
+
+function shutdown (sql, opts) {
+  const result = flushBuffer(sql, opts)
+  if (result instanceof Promise && 'then' in result) {
+    result.then(() => {
+      exit(sql)
+    })
+  } else {
+    exit(sql)
+  }
 }
 
 if (require.main === module) {
@@ -84,8 +101,14 @@ if (require.main === module) {
       const sql = postgres(opts.connection, postgresOpts)
       const transport = new PinoTransform(opts, sql)
       transport.on('end', () => {
-        sql.end()
-        clearInterval(interval)
+        shutdown(sql, opts)
+      })
+
+      process.on('SIGINT', () => {
+        shutdown(sql, opts)
+      })
+      process.on('SIGTERM', () => {
+        shutdown(sql, opts)
       })
 
       interval = setInterval(() => {

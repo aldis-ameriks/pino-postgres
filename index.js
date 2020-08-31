@@ -31,13 +31,14 @@ class PinoTransform extends Transform {
 
 function flushBuffer (sql, opts) {
   if (buffer.length) {
-    buffer = []
-    return sql`
+    const query = sql`
             INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column)}
             ON CONFLICT DO NOTHING;
             `.catch((err) => {
         console.error('error in pino-postgres sql', err)
       })
+    buffer = []
+    return query
   }
 }
 

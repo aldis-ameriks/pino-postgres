@@ -45,10 +45,11 @@ class PinoTransform extends Transform {
 function flushBuffer (sql, opts) {
   if (buffer.length) {
     const query = sql`
-            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column, 'time')}
+            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column, opts.timeColumn)}
             ON CONFLICT DO NOTHING;
             `.catch((err) => {
         console.error('error in pino-postgres sql', err)
+        console.error(buffer)
       })
     buffer = []
     return query

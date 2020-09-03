@@ -88,16 +88,15 @@ if (require.main === module) {
       .option('--time-field <name>', 'time field name', 'time')
       .option('--flush-interval <number>', 'interval at which logs are flushed in ms', parseNumber, 5000)
       .option('--buffer-size <number>', 'max number of log entries in buffer', parseNumber, 1000)
+      .option('--max-connections <number>', 'max number of connections', parseNumber, 3)
       .option('--ssl', 'use ssl', false)
       .option('--debug', 'debug postgres client', false)
       .option('--pass-through', 'pass logs through', false)
 
     const opts = program.parse(process.argv).opts()
 
-    console.log('opts: ', opts);
-
     const postgresOpts = {
-      max: 3
+      max: opts.maxConnections
     }
     if (opts.ssl) {
       postgresOpts.ssl = { rejectUnauthorized: false }

@@ -34,7 +34,7 @@ class PinoTransform extends Transform {
       return callback(null, passThrough ? `${chunk}\n` : null)
     }
 
-    buffer.push({ [column]: content, time: parsed.time / 1000 })
+    buffer.push({ [column]: content, time: new Date(parsed.time).toISOString() })
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }

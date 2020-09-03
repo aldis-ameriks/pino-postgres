@@ -51,6 +51,7 @@ function flushBuffer (sql, opts) {
             `.catch((err) => {
         console.error('error in pino-postgres sql', err)
         console.error('buffer', buffer)
+        console.error('copy', copy)
       })
     buffer = []
     return query

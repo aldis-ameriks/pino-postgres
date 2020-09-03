@@ -22,7 +22,19 @@ class PinoTransform extends Transform {
   _transform (chunk, encoding, callback) {
     const { column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
-    buffer.push({ [column]: content })
+
+    let parsed
+    try {
+      parsed = JSON.parse(content)
+    } catch (e) {
+      return callback(null, passThrough ? `${chunk}\n` : null)
+    }
+
+    if (!parsed.time) {
+      return callback(null, passThrough ? `${chunk}\n` : null)
+    }
+
+    buffer.push({ [column]: content, time: parsed.time })
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }
@@ -33,7 +45,7 @@ class PinoTransform extends Transform {
 function flushBuffer (sql, opts) {
   if (buffer.length) {
     const query = sql`
-            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column)}
+            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column, 'time')}
             ON CONFLICT DO NOTHING;
             `.catch((err) => {
         console.error('error in pino-postgres sql', err)

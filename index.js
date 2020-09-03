@@ -20,7 +20,7 @@ class PinoTransform extends Transform {
   }
 
   _transform (chunk, encoding, callback) {
-    const { column, passThrough } = this.opts
+    const { contentColumn, timeColumn, timeField, passThrough } = this.opts
     const content = chunk.toString('utf-8')
 
     let parsed
@@ -30,11 +30,11 @@ class PinoTransform extends Transform {
       return callback(null, passThrough ? `${chunk}\n` : null)
     }
 
-    if (!parsed.time) {
+    if (!parsed[timeField]) {
       return callback(null, passThrough ? `${chunk}\n` : null)
     }
 
-    buffer.push({ [column]: content, time: new Date(parsed.time).toISOString() })
+    buffer.push({ [contentColumn]: content, [timeColumn]: new Date(parsed[timeField]).toISOString() })
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }
@@ -82,7 +82,9 @@ if (require.main === module) {
       .requiredOption('--connection <connection>', 'postgres connection string')
       .option('--table <name>', 'table name', 'logs')
       .option('--schema <name>', 'schema name', 'public')
-      .option('--column <name>', 'column name', 'content')
+      .option('--content-column <name>', 'content column name', 'content')
+      .option('--time-column <name>', 'time column name', 'time')
+      .option('--time-field <name>', 'time field name', 'time')
       .option('--flush-interval <number>', 'interval at which logs are flushed in ms', parseNumber, 5000)
       .option('--buffer-size <number>', 'max number of log entries in buffer', parseNumber, 1000)
       .option('--ssl', 'use ssl', false)

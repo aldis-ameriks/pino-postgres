@@ -20,21 +20,10 @@ class PinoTransform extends Transform {
   }
 
   _transform (chunk, encoding, callback) {
-    const { contentColumn, timeColumn, timeField, passThrough } = this.opts
+    const { column, passThrough } = this.opts
     const content = chunk.toString('utf-8')
 
-    let parsed
-    try {
-      parsed = JSON.parse(content)
-    } catch (e) {
-      return callback(null, passThrough ? `${chunk}\n` : null)
-    }
-
-    if (!parsed[timeField]) {
-      return callback(null, passThrough ? `${chunk}\n` : null)
-    }
-
-    buffer.push({ [contentColumn]: content, [timeColumn]: new Date(parsed[timeField]).toISOString() })
+    buffer.push({ [column]: content })
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }
@@ -45,7 +34,7 @@ class PinoTransform extends Transform {
 function flushBuffer (sql, opts) {
   if (buffer.length) {
     const query = sql`
-            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.contentColumn, opts.timeColumn)}
+            INSERT INTO ${sql(opts.schema)}.${sql(opts.table)} ${sql(buffer, opts.column)}
             ON CONFLICT DO NOTHING;
             `.catch((err) => {
         console.error('error in pino-postgres sql', err)
@@ -82,9 +71,7 @@ if (require.main === module) {
       .requiredOption('--connection <connection>', 'postgres connection string')
       .option('--table <name>', 'table name', 'logs')
       .option('--schema <name>', 'schema name', 'public')
-      .option('--content-column <name>', 'content column name', 'content')
-      .option('--time-column <name>', 'time column name', 'time')
-      .option('--time-field <name>', 'time field name', 'time')
+      .option('--column <name>', 'column name', 'content')
       .option('--flush-interval <number>', 'interval at which logs are flushed in ms', parseNumber, 5000)
       .option('--buffer-size <number>', 'max number of log entries in buffer', parseNumber, 1000)
       .option('--max-connections <number>', 'max number of connections', parseNumber, 3)
@@ -97,9 +84,11 @@ if (require.main === module) {
     const postgresOpts = {
       max: opts.maxConnections
     }
+
     if (opts.ssl) {
       postgresOpts.ssl = { rejectUnauthorized: false }
     }
+
     if (opts.debug) {
       postgresOpts.debug = (connection, query, params) => {
         console.log('DEBUG - connection: ', connection)

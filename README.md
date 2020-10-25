@@ -1,11 +1,18 @@
 <h1 align="center">Welcome to pino-postgres 👋</h1>
+<p>
+    <a href="https://www.npmjs.com/package/pino-postgres" target="_blank">
+        <img alt="Version" src="https://img.shields.io/npm/v/pino-postgres.svg">
+    </a>
+</p>
 
 > Pino transport for Postgres
 
 ## Install
 
 ```sh
-npm install pino-postgres
+$ npm install pino-postgres
+# or
+$ yarn add pino-postgres
 ```
 
 ## Usage

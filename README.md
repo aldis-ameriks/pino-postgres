@@ -25,9 +25,7 @@ Options:
   --connection <connection>   postgres connection string
   --table <name>              table name (default: "logs")
   --schema <name>             schema name (default: "public")
-  --content-column <name>     content column name (default: "content")
-  --time-column <name>        time column name (default: "time")
-  --time-field <name>         time field name (default: "time")
+  --column <name>             column name (default: "content")
   --flush-interval <number>   interval at which logs are flushed in ms (default: 5000)
   --buffer-size <number>      max number of log entries in buffer (default: 1000)
   --max-connections <number>  max number of connections (default: 3)
@@ -41,7 +39,7 @@ Options:
 node app.js | pino-postgres --connection postgres://username:password@localhost:5432/database
 ```
 
-> pino-postgres does not create the necessary database tables, ensure that the table with jsonb and timestamptz columns exist.
+> pino-postgres does not create the necessary database table, make sure the table with jsonb column exists.
 
 ## Contributing
 

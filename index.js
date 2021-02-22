@@ -23,18 +23,21 @@ class PinoTransform extends Transform {
     const { column, passThrough, wrapNonJson } = this.opts
     const content = chunk.toString('utf-8')
 
-    // Assumes that JSON written by PINO is contained within {"...}.
-    if (wrapNonJson && (! content.startsWith('{"') || ! content.endsWith('}'))) {
-      const fixedcontent = `{"time":${Date.now()},"msg":"${content}"}`
-      buffer.push({ [column]: fixedcontent })
-    } else {
-      buffer.push({ [column]: content })
+    try {
+      JSON.parse(content)
+    } catch (e) {
+      if (wrapNonJson) {
+        const fixedcontent = `{"time":${Date.now()},"msg":"${content}"}`
+        buffer.push({ [column]: fixedcontent })
+        return callback(null, passThrough ? `${chunk}\n` : null)
+      }
     }
+    buffer.push({ [column]: content })
     
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }
-    callback(null, passThrough ? `${chunk}\n` : null)
+    return callback(null, passThrough ? `${chunk}\n` : null)
   }
 }
 

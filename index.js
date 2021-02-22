@@ -20,10 +20,17 @@ class PinoTransform extends Transform {
   }
 
   _transform (chunk, encoding, callback) {
-    const { column, passThrough } = this.opts
+    const { column, passThrough, wrapNonJson } = this.opts
     const content = chunk.toString('utf-8')
 
-    buffer.push({ [column]: content })
+    // Assumes that JSON written by PINO is contained within {"...}.
+    if (wrapNonJson && (! content.startsWith('{"') || ! content.endsWith('}'))) {
+      const fixedcontent = `{"time":${Date.now()},"msg":"${content}"}`
+      buffer.push({ [column]: fixedcontent })
+    } else {
+      buffer.push({ [column]: content })
+    }
+    
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }
@@ -78,6 +85,7 @@ if (require.main === module) {
       .option('--ssl', 'use ssl', false)
       .option('--debug', 'debug postgres client', false)
       .option('--pass-through', 'pass logs through', false)
+      .option('--wrap-non-json', 'wrap non-json messages as json', false)
 
     const opts = program.parse(process.argv).opts()
 

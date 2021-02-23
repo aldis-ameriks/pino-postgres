@@ -21,7 +21,7 @@ class PinoTransform extends Transform {
 
   _transform (chunk, encoding, callback) {
     const { column, passThrough, wrapNonJson } = this.opts
-    
+
     let content = chunk.toString('utf-8')
 
     try {
@@ -33,7 +33,7 @@ class PinoTransform extends Transform {
     }
 
     buffer.push({ [column]: content })
-    
+
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)
     }

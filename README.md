@@ -32,6 +32,7 @@ Options:
   --ssl                       use ssl (default: false)
   --debug                     debug postgres client (default: false)
   --pass-through              pass logs through (default: false)
+  --wrap-non-json             wrap non-json messages as json (default: false)
   -h, --help                  display help for command
 ```
 

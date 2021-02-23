@@ -21,17 +21,17 @@ class PinoTransform extends Transform {
 
   _transform (chunk, encoding, callback) {
     const { column, passThrough, wrapNonJson } = this.opts
-    const content = chunk.toString('utf-8')
+    
+    let content = chunk.toString('utf-8')
 
     try {
       JSON.parse(content)
-    } catch (e) {
+    } catch {
       if (wrapNonJson) {
-        const fixedcontent = `{"time":${Date.now()},"msg":"${content}"}`
-        buffer.push({ [column]: fixedcontent })
-        return callback(null, passThrough ? `${chunk}\n` : null)
+        content = `{"time":${Date.now()},"msg":"${content}"}`
       }
     }
+
     buffer.push({ [column]: content })
     
     if (buffer.length > this.opts.bufferSize) {

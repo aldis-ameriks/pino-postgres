@@ -23,16 +23,19 @@ class PinoTransform extends Transform {
     const { column, passThrough, wrapNonJson } = this.opts
 
     let content = chunk.toString('utf-8')
+    let parsedContent;
 
     try {
-      JSON.parse(content)
+      parsedContent = JSON.parse(content)
     } catch {
       if (wrapNonJson) {
-        content = `{"time":${Date.now()},"msg":"${content}"}`
+        parsedContent = { time: Date.now(), msg: content }
+      } else {
+        parsedContent = content
       }
     }
 
-    buffer.push({ [column]: content })
+    buffer.push({ [column]: parsedContent })
 
     if (buffer.length > this.opts.bufferSize) {
       flushBuffer(this.sql, this.opts)

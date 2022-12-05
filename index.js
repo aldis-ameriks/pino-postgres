@@ -22,8 +22,8 @@ class PinoTransform extends Transform {
   _transform (chunk, encoding, callback) {
     const { column, passThrough, wrapNonJson } = this.opts
 
-    let content = chunk.toString('utf-8')
-    let parsedContent;
+    const content = chunk.toString('utf-8')
+    let parsedContent
 
     try {
       parsedContent = JSON.parse(content)

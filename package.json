@@ -31,8 +31,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "commander": "^9.4.1",
-    "postgres": "^3.3.2",
+    "commander": "^9.5.0",
+    "postgres": "^3.3.3",
     "split2": "^4.1.0"
   },
   "devDependencies": {

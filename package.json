@@ -1,6 +1,6 @@
 {
   "name": "pino-postgres",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "description": "Pino transport for Postgres",
   "main": "index.js",
   "bin": {

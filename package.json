@@ -31,11 +31,11 @@
   },
   "license": "MIT",
   "dependencies": {
-    "commander": "^10.0.0",
-    "postgres": "^3.3.4",
+    "commander": "^11.0.0",
+    "postgres": "^3.3.5",
     "split2": "^4.2.0"
   },
   "devDependencies": {
-    "standard": "^17.0.0"
+    "standard": "^17.1.0"
   }
 }
